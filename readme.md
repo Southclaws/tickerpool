@@ -1,5 +1,7 @@
 # TickerPool
 
+[![CircleCI](https://img.shields.io/circleci/project/github/Southclaws/tickerpool.svg)]()
+
 A worker pool of timed tasks, balanced equally to prevent cpu spikes.
 
 This package is for creating a pool of workers which fire on a constant interval. The workers are balanced to avoid cpu spikes by simply dividing the interval by the amount of workers and offsetting their execution by this fraction.
