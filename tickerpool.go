@@ -35,14 +35,17 @@ func NewTickerPool(interval time.Duration) (*TickerPool, error) {
 
 // Add schedules a new worker to spin up on the TickerPool's interval. The task will not fire right
 // away but as soon as the new worker interval is calculated and the task is assigned a position.
-func (tp *TickerPool) Add(name string, task func()) {
-	tp.workers.Store(name, task)
-	atomic.AddInt64(&tp.workerTotal, 1)
+func (tp *TickerPool) Add(name string, task func()) (exists bool) {
+	_, exists = tp.workers.LoadOrStore(name, task)
+	if !exists {
+		atomic.AddInt64(&tp.workerTotal, 1)
 
-	if atomic.LoadInt64(&tp.workerTotal) == 1 {
-		// if this is the first worker in the pool, the queue isn't running to start it
-		go tp.queue()
+		if atomic.LoadInt64(&tp.workerTotal) == 1 {
+			// if this is the first worker in the pool, the queue isn't running to start it
+			go tp.queue()
+		}
 	}
+	return
 }
 
 // Remove simply removes a worker from the pool, no other action is required as if there is a queue

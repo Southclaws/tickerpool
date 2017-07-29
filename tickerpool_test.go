@@ -59,17 +59,22 @@ func TestTickerPool_Add(t *testing.T) {
 		task func()
 	}
 	tests := []struct {
-		name string
-		tp   *TickerPool
-		args args
+		name      string
+		tp        *TickerPool
+		args      args
+		wantExist bool
 	}{
-		{"1", dummy, args{"a", dummyA}},
-		{"2", dummy, args{"b", dummyB}},
-		{"3", dummy, args{"c", dummyC}},
+		{"1", dummy, args{"a", dummyA}, false},
+		{"2", dummy, args{"b", dummyB}, false},
+		{"3", dummy, args{"c", dummyC}, false},
+		{"4", dummy, args{"c", dummyC}, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.tp.Add(tt.args.name, tt.args.task)
+			exists := tt.tp.Add(tt.args.name, tt.args.task)
+			if exists != tt.wantExist {
+				t.Errorf("'%s' exists when it shouldn't!", tt.args.name)
+			}
 			time.Sleep(time.Second)
 		})
 	}
