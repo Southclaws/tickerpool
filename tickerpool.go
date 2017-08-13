@@ -55,6 +55,12 @@ func (tp *TickerPool) Remove(name string) {
 	atomic.AddInt64(&tp.workerTotal, -1)
 }
 
+// Exists checks if a worker exists in the pool
+func (tp *TickerPool) Exists(name string) bool {
+	_, exists := tp.workers.Load(name)
+	return exists
+}
+
 // calculateWorkerInterval is a simple function to divide an interval by the amount of workers
 func calculateWorkerInterval(interval time.Duration, workers int64) time.Duration {
 	return time.Duration(interval.Nanoseconds() / int64(workers))
