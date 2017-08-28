@@ -1,6 +1,6 @@
 # TickerPool
 
-[![CircleCI](https://img.shields.io/circleci/project/github/Southclaws/tickerpool.svg)]()[![Coverage](http://gocover.io/_badge/github.com/Southclaws/tickerpool)](http://gocover.io/github.com/Southclaws/tickerpool)
+[![Travis](https://img.shields.io/travis/Southclaws/tickerpool.svg)](https://travis-ci.org/Southclaws/tickerpool)[![Coverage](http://gocover.io/_badge/github.com/Southclaws/tickerpool)](http://gocover.io/github.com/Southclaws/tickerpool)
 
 A worker pool of timed tasks, balanced equally to prevent cpu spikes.
 
