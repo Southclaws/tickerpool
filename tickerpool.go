@@ -16,7 +16,6 @@ type TickerPool struct {
 	workerTotal    int64
 	workerQueue    chan func()
 	workerInterval time.Duration
-	generate       chan bool
 }
 
 // NewTickerPool creates a TickerPool with a set interval.
