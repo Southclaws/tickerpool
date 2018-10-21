@@ -1,6 +1,7 @@
 package tickerpool
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"reflect"
@@ -12,20 +13,20 @@ var dummy *TickerPool
 var clipboard int32
 
 func TestMain(t *testing.M) {
-	dummy, _ = NewTickerPool(time.Second)
+	dummy, _ = NewTickerPool(context.Background(), time.Second)
 
 	os.Exit(t.Run())
 }
 
-func dummyA() {
+func dummyA(ctx context.Context) {
 	fmt.Print("dummyA called\n")
 }
 
-func dummyB() {
+func dummyB(ctx context.Context) {
 	fmt.Print("dummyB called\n")
 }
 
-func dummyC() {
+func dummyC(ctx context.Context) {
 	fmt.Print("dummyC called\n")
 }
 
@@ -44,7 +45,7 @@ func TestNewTickerPool(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := NewTickerPool(tt.args.interval)
+			_, err := NewTickerPool(context.Background(), tt.args.interval)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewTickerPool() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -56,7 +57,7 @@ func TestNewTickerPool(t *testing.T) {
 func TestTickerPool_Add(t *testing.T) {
 	type args struct {
 		name string
-		task func()
+		task func(context.Context)
 	}
 	tests := []struct {
 		name      string

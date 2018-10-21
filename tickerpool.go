@@ -1,6 +1,7 @@
 package tickerpool
 
 import (
+	"context"
 	"fmt"
 	"sync/atomic"
 	"time"
@@ -12,21 +13,23 @@ import (
 // set of workers which can grow and shrink dynamically.
 type TickerPool struct {
 	Interval       time.Duration
+	ctx            context.Context
 	workers        syncmap.Map
 	workerTotal    int64
-	workerQueue    chan func()
+	workerQueue    chan func(context.Context)
 	workerInterval time.Duration
 }
 
 // NewTickerPool creates a TickerPool with a set interval.
-func NewTickerPool(interval time.Duration) (*TickerPool, error) {
+func NewTickerPool(ctx context.Context, interval time.Duration) (*TickerPool, error) {
 	if interval <= 0 {
 		return nil, fmt.Errorf("interval cannot be zero or negative")
 	}
 
 	tp := &TickerPool{
 		Interval:    interval,
-		workerQueue: make(chan func()),
+		ctx:         ctx,
+		workerQueue: make(chan func(context.Context)),
 	}
 
 	return tp, nil
@@ -34,7 +37,7 @@ func NewTickerPool(interval time.Duration) (*TickerPool, error) {
 
 // Add schedules a new worker to spin up on the TickerPool's interval. The task will not fire right
 // away but as soon as the new worker interval is calculated and the task is assigned a position.
-func (tp *TickerPool) Add(name string, task func()) (exists bool) {
+func (tp *TickerPool) Add(name string, task func(context.Context)) (exists bool) {
 	_, exists = tp.workers.LoadOrStore(name, task)
 	if !exists {
 		atomic.AddInt64(&tp.workerTotal, 1)
@@ -79,9 +82,14 @@ func (tp *TickerPool) queue() {
 
 	// this isn't a time.Ticker because we want to iterate through the workers
 	tp.workers.Range(func(key, value interface{}) bool {
-		worker := value.(func())
+		worker := value.(func(context.Context))
 
-		go worker()
+		go func() {
+			// ensure workers don't run longer than the interval
+			ctx, cancel := context.WithTimeout(tp.ctx, tp.workerInterval)
+			defer cancel()
+			worker(ctx)
+		}()
 		time.Sleep(tp.workerInterval)
 		return true
 	})
